@@ -117,4 +117,8 @@ python3 tests/fingers_test.py         # the finger reader, on synthetic touchpad
 python3 tests/menu_install_test.py    # the menu installer, in a sandbox
 ```
 
+## Support
+
+If Tactile is useful to you, you can support its development on [Donatello](https://donatello.to/DuduPhudu).
+
 MIT license.
