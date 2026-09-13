@@ -1,0 +1,16 @@
+  "setup.tactile": {
+    "icon": "󰝁",
+    "label": "Touchpad & mouse",
+    "aliases": [
+      "tactile",
+      "touchpad",
+      "trackpad",
+      "mouse",
+      "pointer",
+      "sensitivity",
+      "scroll speed",
+      "tap to click",
+      "gestures"
+    ],
+    "action": "omarchy-shell shell toggle reidenxerx.tactile '{}'"
+  },

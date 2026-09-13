@@ -1,0 +1,193 @@
+#!/usr/bin/python3
+"""tactile-fingers -- the fingers on the touchpad as JSON lines, for Tactile's finger view.
+
+Reads the first touchpad's evdev node. That needs the opt-in udev rule Tactile offers, which lets the logged-in user
+read touchpads (never keyboards). Prints, one JSON object per line and at most 60 frames a second:
+  {"pad": {"name": ..., "width_mm": ..., "height_mm": ..., "pressure": true}}   once, first
+  {"fingers": [{"slot": 0, "x": 0.41, "y": 0.66, "p": 0.3}], "count": 2, "button": false}
+  {"error": "no-touchpad" | "no-access" | "not-multitouch" | "read-failed"}      and exits
+It stops when nobody reads its output, when the process that started it exits, or after 30 minutes.
+"""
+import fcntl
+import json
+import os
+import select
+import struct
+import sys
+import time
+
+EVENT = struct.Struct("llHHi")  # struct input_event: timeval, type, code, value (24 bytes on 64-bit)
+ABSINFO = struct.Struct("6i")  # struct input_absinfo: value, minimum, maximum, fuzz, flat, resolution
+EV_SYN, EV_KEY, EV_ABS = 0x00, 0x01, 0x03
+SYN_REPORT, SYN_DROPPED = 0, 3
+BTN_LEFT = 0x110
+TOOLS = {0x145: 1, 0x14D: 2, 0x14E: 3, 0x14F: 4, 0x148: 5}  # BTN_TOOL_FINGER, DOUBLETAP, TRIPLETAP, QUADTAP, QUINTTAP
+ABS_MT_SLOT, ABS_MT_POSITION_X, ABS_MT_POSITION_Y, ABS_MT_TRACKING_ID, ABS_MT_PRESSURE = 0x2F, 0x35, 0x36, 0x39, 0x3A
+SLOTS_MAX = 10
+FRAME_S = 1 / 60
+LIFETIME_S = 30 * 60
+READ_EVENTS = 64
+
+
+def eviocgabs(code):
+    return 0x80184540 + code  # _IOR('E', 0x40 + code, struct input_absinfo)
+
+
+def eviocgname(length):
+    return 0x80004506 | (length << 16)  # _IOC(_IOC_READ, 'E', 0x06, length)
+
+
+def find_touchpad(sys_root="/sys/class/input", udev_root="/run/udev/data"):
+    """The event node of the first device udev marks as a touchpad, or None."""
+    try:
+        names = sorted((n for n in os.listdir(sys_root) if n.startswith("event") and n[5:].isdigit()), key=lambda n: int(n[5:]))
+    except OSError:
+        return None
+    for name in names:
+        try:
+            with open(os.path.join(sys_root, name, "dev"), encoding="ascii") as f:
+                major, minor = (int(part) for part in f.read(32).strip().split(":"))
+            with open(os.path.join(udev_root, "c%d:%d" % (major, minor)), encoding="utf-8", errors="replace") as f:
+                lines = f.read(65536).splitlines()
+        except (OSError, ValueError):
+            continue
+        if "E:ID_INPUT_TOUCHPAD=1" in lines:
+            return "/dev/input/" + name
+    return None
+
+
+def normalise(value, span):
+    low, high = span[0], span[1]
+    return round(min(1.0, max(0.0, (value - low) / (high - low))), 4)
+
+
+class Fingers:
+    """Multitouch protocol B: slots carry a tracking id and the last position reported for them."""
+
+    def __init__(self, ranges, slot=0):
+        self.ranges = ranges
+        self.slot = slot if 0 <= slot < SLOTS_MAX else -1
+        self.slots = {}
+        self.tool = 0
+        self.button = False
+
+    def feed(self, etype, code, value):
+        """Take one event; True when it ends a frame."""
+        if etype == EV_ABS:
+            if code == ABS_MT_SLOT:
+                self.slot = value if 0 <= value < SLOTS_MAX else -1
+            elif self.slot < 0:
+                pass
+            elif code == ABS_MT_TRACKING_ID:
+                if value < 0:
+                    self.slots.pop(self.slot, None)
+                elif self.slot not in self.slots:
+                    self.slots[self.slot] = {"x": None, "y": None, "p": None}
+            elif self.slot in self.slots:
+                key = {ABS_MT_POSITION_X: "x", ABS_MT_POSITION_Y: "y", ABS_MT_PRESSURE: "p"}.get(code)
+                if key and code in self.ranges:
+                    self.slots[self.slot][key] = normalise(value, self.ranges[code])
+        elif etype == EV_KEY:
+            if code in TOOLS:
+                if value:
+                    self.tool = TOOLS[code]
+                elif self.tool == TOOLS[code]:
+                    self.tool = 0
+            elif code == BTN_LEFT:
+                self.button = value != 0
+        elif etype == EV_SYN:
+            if code == SYN_REPORT:
+                return True
+            if code == SYN_DROPPED:
+                self.slots.clear()
+        return False
+
+    def frame(self):
+        fingers = [{"slot": s, "x": v["x"], "y": v["y"], "p": v["p"]}
+                   for s, v in sorted(self.slots.items()) if v["x"] is not None and v["y"] is not None]
+        return {"fingers": fingers, "count": max(self.tool, len(fingers)), "button": self.button}
+
+
+def pad_ranges(fd):
+    """code -> (minimum, maximum, resolution, value) for the axes the pad has."""
+    ranges = {}
+    for code in (ABS_MT_POSITION_X, ABS_MT_POSITION_Y, ABS_MT_PRESSURE, ABS_MT_SLOT):
+        try:
+            value, low, high, _fuzz, _flat, resolution = ABSINFO.unpack(fcntl.ioctl(fd, eviocgabs(code), bytes(ABSINFO.size)))
+        except OSError:
+            continue
+        if high > low:
+            ranges[code] = (low, high, resolution, value)
+    return ranges
+
+
+def emit(obj):
+    sys.stdout.write(json.dumps(obj, separators=(",", ":")) + "\n")
+    sys.stdout.flush()
+
+
+def main():
+    path = find_touchpad()
+    if path is None:
+        emit({"error": "no-touchpad"})
+        return 1
+    try:
+        fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK | os.O_CLOEXEC | os.O_NOFOLLOW)
+    except PermissionError:
+        emit({"error": "no-access"})
+        return 2
+    except OSError:
+        emit({"error": "read-failed"})
+        return 3
+    try:
+        try:
+            name = fcntl.ioctl(fd, eviocgname(256), bytes(256)).split(b"\0", 1)[0].decode("utf-8", "replace")
+        except OSError:
+            name = ""
+        ranges = pad_ranges(fd)
+        if ABS_MT_POSITION_X not in ranges or ABS_MT_POSITION_Y not in ranges:
+            emit({"error": "not-multitouch"})
+            return 4
+
+        def millimetres(code):
+            low, high, resolution, _value = ranges[code]
+            return round((high - low) / resolution, 1) if resolution > 0 else None
+
+        emit({"pad": {"name": name[:80], "width_mm": millimetres(ABS_MT_POSITION_X),
+                      "height_mm": millimetres(ABS_MT_POSITION_Y), "pressure": ABS_MT_PRESSURE in ranges}})
+        fingers = Fingers(ranges, ranges[ABS_MT_SLOT][3] if ABS_MT_SLOT in ranges else 0)
+        parent = os.getppid()
+        started = time.monotonic()
+        last_emit = 0.0
+        last_count = -1
+        pending = None
+        while time.monotonic() - started < LIFETIME_S and os.getppid() == parent:
+            ready, _, _ = select.select([fd], [], [], FRAME_S if pending else 1.0)
+            now = time.monotonic()
+            if ready:
+                try:
+                    data = os.read(fd, EVENT.size * READ_EVENTS)
+                except BlockingIOError:
+                    data = b""
+                except OSError:
+                    emit({"error": "read-failed"})
+                    return 3
+                for offset in range(0, len(data) - len(data) % EVENT.size, EVENT.size):
+                    _sec, _usec, etype, code, value = EVENT.unpack_from(data, offset)
+                    if fingers.feed(etype, code, value):
+                        pending = fingers.frame()
+            if pending and (pending["count"] != last_count or now - last_emit >= FRAME_S):
+                emit(pending)
+                last_emit = now
+                last_count = pending["count"]
+                pending = None
+        return 0
+    except BrokenPipeError:
+        os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+        return 0
+    finally:
+        os.close(fd)
+
+
+if __name__ == "__main__":
+    sys.exit(main())
