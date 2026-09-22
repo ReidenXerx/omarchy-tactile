@@ -48,10 +48,10 @@ function readDevices(raw) {
 // A readable name: vendor codes say nothing about a touchpad, and a mouse's name is its words.
 function deviceLabel(name, kind) {
   if (kind === "touchpad") return "Touchpad"
-  // A device names itself, and a hostile one can name itself markup. This label
-  // is handed to a shared Omarchy component that renders it without pinning
-  // textFormat, so the safe string has to be made here rather than assumed
-  // downstream.
+  // A device names itself, and a hostile one can name itself markup. Omarchy's
+  // Button does pin textFormat, so today this is belt and braces rather than a
+  // fix -- but the label is handed to a shared component this plugin does not
+  // own, and a string that is safe whoever renders it costs one replace.
   name = String(name || "").replace(/[<>&]/g, "")
   return String(name || "").split(new RegExp("[-_ /:]+")).filter(function (w) { return w.length > 0 }).map(function (w) {
     if (new RegExp("[0-9]").test(w) || w.length <= 2) return w.toUpperCase()
