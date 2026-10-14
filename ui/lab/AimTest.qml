@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import "../../TactileModel.js" as Model
 
 // Aiming: targets appear one after another; how long each takes and how far the pointer wanders on the way tell you
@@ -9,8 +10,8 @@ Item {
 
   property string kind: ""
   property var values: ({})
-  property color ink: Color.menu.text
-  property color accent: Color.accent
+  property color ink: Commons.Color.menu.text
+  property color accent: Commons.Color.accent
   property color faint: Qt.rgba(aimTest.ink.r, aimTest.ink.g, aimTest.ink.b, 0.62)
   property color hairline: Qt.rgba(aimTest.ink.r, aimTest.ink.g, aimTest.ink.b, 0.12)
 

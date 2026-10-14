@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 import "../TactileModel.js" as Model
 
@@ -11,8 +12,8 @@ Item {
   property var values: ({})
   property string test: "scroll"
   property var service: null
-  property color ink: Color.menu.text
-  property color accent: Color.accent
+  property color ink: Commons.Color.menu.text
+  property color accent: Commons.Color.accent
   property color faint: Qt.rgba(feelLab.ink.r, feelLab.ink.g, feelLab.ink.b, 0.62)
   property color hairline: Qt.rgba(feelLab.ink.r, feelLab.ink.g, feelLab.ink.b, 0.12)
   property color wash: Qt.rgba(feelLab.ink.r, feelLab.ink.g, feelLab.ink.b, 0.04)

@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 
 // Pinching: a card that zooms and turns with two fingers on the pad.
 Item {
@@ -7,8 +8,8 @@ Item {
 
   property string kind: ""
   property var values: ({})
-  property color ink: Color.menu.text
-  property color accent: Color.accent
+  property color ink: Commons.Color.menu.text
+  property color accent: Commons.Color.accent
   property color faint: Qt.rgba(pinchTest.ink.r, pinchTest.ink.g, pinchTest.ink.b, 0.62)
   property color hairline: Qt.rgba(pinchTest.ink.r, pinchTest.ink.g, pinchTest.ink.b, 0.12)
 

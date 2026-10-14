@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 import "../TactileModel.js" as Model
 
@@ -11,8 +12,8 @@ Item {
   property var service: null
   property var device: null
   property var values: ({})
-  property color ink: Color.menu.text
-  property color accent: Color.accent
+  property color ink: Commons.Color.menu.text
+  property color accent: Commons.Color.accent
   property color faint: Qt.rgba(settingsList.ink.r, settingsList.ink.g, settingsList.ink.b, 0.62)
   property color hairline: Qt.rgba(settingsList.ink.r, settingsList.ink.g, settingsList.ink.b, 0.12)
 
@@ -191,7 +192,7 @@ Item {
                 step: row.spec.step || 0.05
                 value: typeof row.value === "number" ? row.value : 0
                 tickCount: row.field === "sensitivity" ? 3 : 0
-                tickColor: Qt.rgba(Color.menu.background.r, Color.menu.background.g, Color.menu.background.b, 1)
+                tickColor: Qt.rgba(Commons.Color.menu.background.r, Commons.Color.menu.background.g, Commons.Color.menu.background.b, 1)
                 trackColor: settingsList.hairline
                 fillColor: settingsList.accent
                 knobColor: settingsList.ink

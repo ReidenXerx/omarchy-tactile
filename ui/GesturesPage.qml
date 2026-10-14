@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 import "../TactileModel.js" as Model
 
@@ -8,8 +9,8 @@ Item {
   id: gesturesPage
 
   property var service: null
-  property color ink: Color.menu.text
-  property color accent: Color.accent
+  property color ink: Commons.Color.menu.text
+  property color accent: Commons.Color.accent
   property color faint: Qt.rgba(gesturesPage.ink.r, gesturesPage.ink.g, gesturesPage.ink.b, 0.62)
   property color hairline: Qt.rgba(gesturesPage.ink.r, gesturesPage.ink.g, gesturesPage.ink.b, 0.12)
 

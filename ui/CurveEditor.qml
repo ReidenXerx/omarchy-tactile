@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 import "../TactileModel.js" as Model
 
@@ -10,8 +11,8 @@ Item {
 
   property string text: ""
   property string what: "pointer"
-  property color ink: Color.menu.text
-  property color accent: Color.accent
+  property color ink: Commons.Color.menu.text
+  property color accent: Commons.Color.accent
   property color faint: Qt.rgba(curveEditor.ink.r, curveEditor.ink.g, curveEditor.ink.b, 0.62)
   property color hairline: Qt.rgba(curveEditor.ink.r, curveEditor.ink.g, curveEditor.ink.b, 0.12)
 
@@ -138,7 +139,7 @@ Item {
         y: plot.py(handle.value) - height / 2
         color: grab.pressed || grab.containsMouse ? curveEditor.accent : curveEditor.ink
         border.width: Math.max(2, Style.space(2))
-        border.color: Qt.rgba(Color.menu.background.r, Color.menu.background.g, Color.menu.background.b, 1)
+        border.color: Qt.rgba(Commons.Color.menu.background.r, Commons.Color.menu.background.g, Commons.Color.menu.background.b, 1)
 
         MouseArea {
           id: grab

@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 
 // Fingers: where each finger rests on the pad, drawn live at the pad's real proportions, once Tactile may read it.
@@ -9,8 +10,8 @@ Item {
   property var service: null
   property string kind: ""
   property var values: ({})
-  property color ink: Color.menu.text
-  property color accent: Color.accent
+  property color ink: Commons.Color.menu.text
+  property color accent: Commons.Color.accent
   property color faint: Qt.rgba(fingersTest.ink.r, fingersTest.ink.g, fingersTest.ink.b, 0.62)
   property color hairline: Qt.rgba(fingersTest.ink.r, fingersTest.ink.g, fingersTest.ink.b, 0.12)
 

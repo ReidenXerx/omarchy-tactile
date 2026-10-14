@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 
 // Scrolling: a long ruler to scroll, and how far the last swipe moved it, momentum included.
 Item {
@@ -7,8 +8,8 @@ Item {
 
   property string kind: ""
   property var values: ({})
-  property color ink: Color.menu.text
-  property color accent: Color.accent
+  property color ink: Commons.Color.menu.text
+  property color accent: Commons.Color.accent
   property color faint: Qt.rgba(scrollTest.ink.r, scrollTest.ink.g, scrollTest.ink.b, 0.62)
   property color hairline: Qt.rgba(scrollTest.ink.r, scrollTest.ink.g, scrollTest.ink.b, 0.12)
 

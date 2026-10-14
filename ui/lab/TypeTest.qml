@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 
 // Typing: does the pointer move when a palm brushes the pad mid-sentence?
 Item {
@@ -7,8 +8,8 @@ Item {
 
   property string kind: ""
   property var values: ({})
-  property color ink: Color.menu.text
-  property color accent: Color.accent
+  property color ink: Commons.Color.menu.text
+  property color accent: Commons.Color.accent
   property color faint: Qt.rgba(typeTest.ink.r, typeTest.ink.g, typeTest.ink.b, 0.62)
   property color hairline: Qt.rgba(typeTest.ink.r, typeTest.ink.g, typeTest.ink.b, 0.12)
 

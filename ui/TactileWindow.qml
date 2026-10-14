@@ -1,6 +1,7 @@
 import Quickshell
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 import "../TactileModel.js" as Model
 
@@ -29,9 +30,9 @@ FloatingWindow {
   readonly property bool trying: !!(tactileWindow.service && tactileWindow.service.trial)
   readonly property bool ready: !!(tactileWindow.service && tactileWindow.service.loaded && tactileWindow.service.globalsReady)
 
-  readonly property color paper: Qt.rgba(Color.menu.background.r, Color.menu.background.g, Color.menu.background.b, 1)
-  readonly property color ink: Color.menu.text
-  readonly property color accent: Color.accent
+  readonly property color paper: Qt.rgba(Commons.Color.menu.background.r, Commons.Color.menu.background.g, Commons.Color.menu.background.b, 1)
+  readonly property color ink: Commons.Color.menu.text
+  readonly property color accent: Commons.Color.accent
   readonly property color faint: Qt.rgba(tactileWindow.ink.r, tactileWindow.ink.g, tactileWindow.ink.b, 0.62)
   readonly property color hairline: Qt.rgba(tactileWindow.ink.r, tactileWindow.ink.g, tactileWindow.ink.b, 0.12)
   readonly property color wash: Qt.rgba(tactileWindow.ink.r, tactileWindow.ink.g, tactileWindow.ink.b, 0.04)
@@ -260,7 +261,7 @@ FloatingWindow {
         elide: Text.ElideRight
         textFormat: Text.PlainText
         text: tactileWindow.barText()
-        color: tactileWindow.service && tactileWindow.service.statusIsError && tactileWindow.service.status !== "" ? Color.urgent
+        color: tactileWindow.service && tactileWindow.service.statusIsError && tactileWindow.service.status !== "" ? Commons.Color.urgent
           : tactileWindow.trying ? tactileWindow.ink : tactileWindow.faint
         font.family: Style.font.family
         font.pixelSize: Style.font.body

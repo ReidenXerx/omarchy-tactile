@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import "../TactileModel.js" as Model
 
 // What each number of fingers does in each direction, as Tactile's gestures and the touchpad settings leave it:
@@ -9,8 +10,8 @@ Item {
 
   property var gestures: []
   property int dragSetting: 0
-  property color ink: Color.menu.text
-  property color accent: Color.accent
+  property color ink: Commons.Color.menu.text
+  property color accent: Commons.Color.accent
   property color faint: Qt.rgba(gestureMap.ink.r, gestureMap.ink.g, gestureMap.ink.b, 0.62)
   property color hairline: Qt.rgba(gestureMap.ink.r, gestureMap.ink.g, gestureMap.ink.b, 0.12)
 
