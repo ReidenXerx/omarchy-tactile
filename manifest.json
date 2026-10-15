@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "reidenxerx.tactile",
   "name": "Tactile",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "author": "ReidenXerx",
   "license": "MIT",
   "description": "Tune your touchpad and mouse by feel: every change undoes itself unless you keep it, right beside test areas that show what it does. Draw acceleration curves, add gestures, set scroll speed per app, turn the touchpad off while a mouse is connected, and watch your fingers on the pad.",

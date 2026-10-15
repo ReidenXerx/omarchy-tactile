@@ -68,28 +68,24 @@ Item {
     border.width: 1
     border.color: editor.activeFocus ? typeTest.accent : typeTest.hairline
 
-    TextEdit {
+    // A typing test needs keys only: no paste, and none of Qt's own text fields, which would read every new clipboard
+    // entry into the shell unbounded.
+    KeyField {
       id: editor
       anchors.fill: parent
       anchors.margins: Style.space(12)
-      wrapMode: TextEdit.Wrap
+      multiline: true
+      pasteEnabled: false
+      maximumLength: 2000
       color: typeTest.ink
-      selectionColor: Qt.rgba(typeTest.accent.r, typeTest.accent.g, typeTest.accent.b, 0.4)
-      selectedTextColor: typeTest.ink
+      placeholderColor: typeTest.faint
+      placeholderText: activeFocus ? "" : "Click here and type…"
       font.family: Style.font.family
       font.pixelSize: Style.font.subtitle
-      clip: true
 
-      Keys.onPressed: function (event) {
+      keyFilter: function (event) {
         typeTest.lastKeyAt = Date.now()
         typeTest.keys++
-      }
-
-      Text {
-        visible: editor.text === "" && !editor.activeFocus
-        text: "Click here and type…"
-        color: typeTest.faint
-        font: editor.font
       }
     }
   }
