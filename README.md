@@ -66,7 +66,9 @@ ACTION=="add|change", SUBSYSTEM=="input", KERNEL=="event*", ENV{ID_INPUT_TOUCHPA
 ```
 
 It lets the person logged in read touchpads, never keyboards. *Stop letting apps read the touchpad* deletes the rule
-again. The reader, `bin/tactile-fingers`, runs only while the Fingers test is on screen.
+again and removes the access it already gave: losing the `uaccess` tag does not take back the ACL logind put on the
+touchpad's device node, so Tactile removes your entry from every touchpad node itself. The reader,
+`bin/tactile-fingers`, runs only while the Fingers test is on screen.
 
 ## From scripts
 
@@ -89,7 +91,8 @@ omarchy plugin add https://github.com/ReidenXerx/omarchy-tactile --enable
 ```
 
 `tactile-menu-install remove` takes the menu entry out again. If you allowed the finger view, take that back in the
-Fingers test before removing the plugin, or delete `/etc/udev/rules.d/70-tactile-touchpad.rules`.
+Fingers test before removing the plugin. Deleting `/etc/udev/rules.d/70-tactile-touchpad.rules` by hand also stops it
+for good, but the access already given stays until the next boot.
 
 ## How it stays safe
 

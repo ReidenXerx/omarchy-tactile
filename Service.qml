@@ -53,10 +53,16 @@ Item {
   readonly property string fingerRule: "/etc/udev/rules.d/70-tactile-touchpad.rules"
   readonly property string fingerTrigger: "/usr/bin/udevadm trigger --action=change --subsystem-match=input --property-match=ID_INPUT_TOUCHPAD=1"
   readonly property string grantScript: "PATH=/usr/bin:/bin; umask 022; printf '%s\\n' " +
-    "'# Tactile: lets the logged-in user read touchpads (never keyboards) for its finger view. Delete this file to take that back.' " +
+    "'# Tactile: lets the logged-in user read touchpads (never keyboards) for its finger view. Take it back from Tactile, which also removes the access already given; deleting this file alone leaves it until the next boot.' " +
     "'ACTION==\"add|change\", SUBSYSTEM==\"input\", KERNEL==\"event*\", ENV{ID_INPUT_TOUCHPAD}==\"1\", TAG+=\"uaccess\"' " +
     "> " + fingerRule + ".new && /usr/bin/mv -f " + fingerRule + ".new " + fingerRule + " && " + fingerTrigger
-  readonly property string revokeScript: "PATH=/usr/bin:/bin; /usr/bin/rm -f " + fingerRule + " && " + fingerTrigger
+  // Taking the uaccess tag away does not take back the ACL logind already gave the user on the touchpad's node (the
+  // tag's removal runs no reset), so after the rule goes and udev has settled, the invoking user's entry is removed
+  // from every touchpad node explicitly. PKEXEC_UID is the user pkexec ran this for.
+  readonly property string revokeScript: "PATH=/usr/bin:/bin; /usr/bin/rm -f " + fingerRule + " || exit 1; " + fingerTrigger +
+    "; /usr/bin/udevadm settle --timeout=10; for d in /dev/input/event*; do " +
+    "/usr/bin/udevadm info --query=property --name=\"$d\" 2>/dev/null | /usr/bin/grep -qx 'ID_INPUT_TOUCHPAD=1' || continue; " +
+    "/usr/bin/setfacl -x \"u:${PKEXEC_UID:?}\" \"$d\" 2>/dev/null; done; exit 0"
   property bool fingersWanted: false
   property var fingerPad: null
   property var fingerFrame: null
